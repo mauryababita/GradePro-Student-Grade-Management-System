@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Grade Report | GradePro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="index.html"><span class="logo-grade">Grade</span><span class="logo-dot">•</span><span class="logo-pro">Pro</span><span class="logo-sub">Student Grade Management</span></a>
+  <div class="topbar-r"><span class="sdot"></span>System Active &nbsp;|&nbsp; Java Spring Boot + In-Memory DB</div>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-label">MENU</div>
+  <a class="nav-link" href="index.html"><span class="nav-icon">👤</span>Manage Students</a>
+  <a class="nav-link" href="marks.html"><span class="nav-icon">📝</span>Enter Marks</a>
+  <a class="nav-link" href="percentage.html"><span class="nav-icon">📊</span>Percentage Report</a>
+  <a class="nav-link active" href="grade.html"><span class="nav-icon">🏅</span>Grade Report</a>
+  <a class="nav-link" href="calculator.html"><span class="nav-icon">🧮</span>Grade Calculator</a>
+  <a class="nav-link" href="java.html"><span class="nav-icon">☕</span>Java Backend Code</a>
+  <div class="sb-stats">
+    <div class="sb-row"><span>Total Students</span><span class="sb-val" id="sb-total">0</span></div>
+    <div class="sb-row"><span>Pass</span><span class="sb-val" style="color:#22c55e" id="sb-pass">0</span></div>
+    <div class="sb-row"><span>Fail</span><span class="sb-val" style="color:#f87171" id="sb-fail">0</span></div>
+    <div class="sb-row"><span>Class Avg</span><span class="sb-val" id="sb-avg">0%</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="ph"><h1>Grade Report</h1><p>Letter grades and Pass / Fail result for all students</p></div>
+
+  <div class="stat-grid" id="grade-stats"></div>
+
+  <div class="card">
+    <div class="card-top"><h2>Subject-wise Grades</h2><span class="muted" id="g-cnt" style="font-size:13px">0 records</span></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Student</th><th>Roll No</th><th>Subject</th><th>Marks</th><th>Percentage</th><th>Grade</th></tr></thead>
+        <tbody id="g-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-top"><h2>Final Result Card</h2></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Name</th><th>Roll No</th><th>Dept</th><th>Subjects</th><th>Overall %</th><th>Final Grade</th><th>Result</th></tr></thead>
+        <tbody id="r-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Grading Scale -->
+  <div class="card">
+    <div class="card-top"><h2>📘 Grading Scale</h2></div>
+    <div class="card-body">
+      <div class="scale-grid">
+        <div class="scale-box" style="background:#dcfce7"><span class="scale-ltr" style="color:#15803d">A+</span><div><div style="font-weight:700;color:#15803d;font-size:14px">90–100%</div><div style="font-size:12px;color:#166534">Outstanding</div></div></div>
+        <div class="scale-box" style="background:#d1fae5"><span class="scale-ltr" style="color:#065f46">A</span><div><div style="font-weight:700;color:#065f46;font-size:14px">80–89%</div><div style="font-size:12px;color:#065f46">Excellent</div></div></div>
+        <div class="scale-box" style="background:#dbeafe"><span class="scale-ltr" style="color:#1d4ed8">B</span><div><div style="font-weight:700;color:#1d4ed8;font-size:14px">70–79%</div><div style="font-size:12px;color:#1d4ed8">Very Good</div></div></div>
+        <div class="scale-box" style="background:#fef9c3"><span class="scale-ltr" style="color:#854d0e">C</span><div><div style="font-weight:700;color:#854d0e;font-size:14px">60–69%</div><div style="font-size:12px;color:#854d0e">Good</div></div></div>
+        <div class="scale-box" style="background:#ffedd5"><span class="scale-ltr" style="color:#c2410c">D</span><div><div style="font-weight:700;color:#c2410c;font-size:14px">40–59%</div><div style="font-size:12px;color:#c2410c">Average</div></div></div>
+        <div class="scale-box" style="background:#fee2e2"><span class="scale-ltr" style="color:#b91c1c">F</span><div><div style="font-weight:700;color:#b91c1c;font-size:14px">0–39%</div><div style="font-size:12px;color:#b91c1c">Fail</div></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+<script src="database.js"></script>
+<script src="helpers.js"></script>
+<script>
+window.onload=function(){ updateSidebar(); renderGStats(); renderGrades(); renderResults(); };
+
+function sc(l,v,s,c){return '<div class="stat-card" style="--sc:'+c+'"><div class="sc-lbl">'+l+'</div><div class="sc-val">'+v+'</div><div class="sc-sub">'+s+'</div></div>';}
+
+function renderGStats(){
+  var list=db_getAllStudents(),total=list.length,pass=0,fail=0,aGr=0;
+  for(var i=0;i<list.length;i++){var sm=calc_summary(list[i].id);if(sm.result==="PASS")pass++;if(sm.result==="FAIL")fail++;if(sm.grade==="A"||sm.grade==="A+")aGr++;}
+  var rate=total?Math.round((pass/total)*100):0;
+  document.getElementById("grade-stats").innerHTML=
+    sc("Total Students",total,"Enrolled","#5b4cdb")+
+    sc("Passed",pass,"Rate: "+rate+"%","#16a34a")+
+    sc("Failed",fail,"Need improvement","#dc2626")+
+    sc("A Grade+",aGr,"Top performers","#7c3aed");
+}
+function renderGrades(){
+  var g=db_getAllGrades(),tb=document.getElementById("g-tbody");
+  document.getElementById("g-cnt").textContent=g.length+" records";
+  if(!g.length){tb.innerHTML='<tr class="empty-r"><td colspan="6">No marks yet. Go to Enter Marks.</td></tr>';return;}
+  var h="";
+  for(var i=0;i<g.length;i++){
+    var r=g[i],s=db_getStudentById(r.studentId),pct=calc_pct(r.marks,r.max),gr=calc_grade(pct),c=pctColor(pct);
+    h+='<tr><td><strong>'+(s?s.name:"—")+'</strong></td><td><span class="mono bold blue">'+(s?s.roll:"—")+'</span></td><td>'+r.subject+'</td><td class="mono bold">'+r.marks+'/'+r.max+'</td><td style="color:'+c+';font-weight:700;font-family:JetBrains Mono,monospace">'+pct+'%</td><td><div class="gp '+gradeClass(gr)+'">'+gr+'</div></td></tr>';
+  }
+  tb.innerHTML=h;
+}
+function renderResults(){
+  var list=db_getAllStudents(),tb=document.getElementById("r-tbody");
+  if(!list.length){tb.innerHTML='<tr class="empty-r"><td colspan="7">No students yet.</td></tr>';return;}
+  var h="";
+  for(var i=0;i<list.length;i++){
+    var s=list[i],gs=db_getGradesByStudentId(s.id),sm=calc_summary(s.id);
+    var gb='<div class="gp '+gradeClass(sm.grade)+'">'+sm.grade+'</div>';
+    var rb=sm.result==="PASS"?'<span class="rb rb-p">✓ PASS</span>':sm.result==="FAIL"?'<span class="rb rb-f">✗ FAIL</span>':'<span class="muted">—</span>';
+    h+='<tr><td><strong>'+s.name+'</strong></td><td><span class="mono bold blue">'+s.roll+'</span></td><td class="muted">'+s.dept+'</td><td class="mono" style="text-align:center">'+gs.length+'</td><td>'+(sm.pct>0?progressBar(sm.pct):'<span class="muted">No marks</span>')+'</td><td>'+gb+'</td><td>'+rb+'</td></tr>';
+  }
+  tb.innerHTML=h;
+}
+</script>
+</body>
+</html>

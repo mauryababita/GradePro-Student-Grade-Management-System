@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Enter Marks | GradePro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="index.html"><span class="logo-grade">Grade</span><span class="logo-dot">•</span><span class="logo-pro">Pro</span><span class="logo-sub">Student Grade Management</span></a>
+  <div class="topbar-r"><span class="sdot"></span>System Active &nbsp;|&nbsp; Java Spring Boot + In-Memory DB</div>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-label">MENU</div>
+  <a class="nav-link" href="index.html"><span class="nav-icon">👤</span>Manage Students</a>
+  <a class="nav-link active" href="marks.html"><span class="nav-icon">📝</span>Enter Marks</a>
+  <a class="nav-link" href="percentage.html"><span class="nav-icon">📊</span>Percentage Report</a>
+  <a class="nav-link" href="grade.html"><span class="nav-icon">🏅</span>Grade Report</a>
+  <a class="nav-link" href="calculator.html"><span class="nav-icon">🧮</span>Grade Calculator</a>
+  <a class="nav-link" href="java.html"><span class="nav-icon">☕</span>Java Backend Code</a>
+  <div class="sb-stats">
+    <div class="sb-row"><span>Total Students</span><span class="sb-val" id="sb-total">0</span></div>
+    <div class="sb-row"><span>Pass</span><span class="sb-val" style="color:#22c55e" id="sb-pass">0</span></div>
+    <div class="sb-row"><span>Fail</span><span class="sb-val" style="color:#f87171" id="sb-fail">0</span></div>
+    <div class="sb-row"><span>Class Avg</span><span class="sb-val" id="sb-avg">0%</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="ph"><h1>Enter Marks</h1><p>Select a student and enter subject-wise marks</p></div>
+
+  <div class="card">
+    <div class="card-top"><h2>Select Student</h2></div>
+    <div class="card-body">
+      <div class="fg" style="max-width:360px">
+        <label>Choose Student</label>
+        <select id="stu-sel" onchange="loadForm()"><option value="">-- Select a student --</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="marks-card" style="display:none">
+    <div class="card-top"><h2 id="marks-title">Marks Entry</h2></div>
+    <div class="card-body">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Subject</th><th>Marks Obtained</th><th>Max Marks</th><th>Status</th></tr></thead>
+          <tbody id="marks-tbody"></tbody>
+        </table>
+      </div>
+      <div class="fa" style="margin-top:20px">
+        <button class="btn btn-dark" onclick="saveMarks()">💾 Save All Marks</button>
+        <button class="btn btn-ghost" onclick="clearInputs()">✕ Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="no-stu" style="display:none">
+    <div class="card-body" style="text-align:center;padding:48px">
+      <p style="font-size:16px;color:#888">No students found.</p>
+      <p style="margin-top:8px;font-size:14px"><a href="index.html" style="color:#5b4cdb">Add students first →</a></p>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+<script src="database.js"></script>
+<script src="helpers.js"></script>
+<script>
+var SUBJ=["Mathematics","Physics","Chemistry","Programming","Data Structures","DBMS","Networks","Operating System"];
+
+window.onload=function(){
+  updateSidebar();
+  var list=db_getAllStudents(), sel=document.getElementById("stu-sel");
+  if (!list.length) { document.getElementById("no-stu").style.display="block"; return; }
+  for (var i=0;i<list.length;i++) {
+    var o=document.createElement("option"); o.value=list[i].id;
+    o.textContent=list[i].name+" ("+list[i].roll+")"; sel.appendChild(o);
+  }
+  var p=new URLSearchParams(window.location.search).get("id");
+  if (p) { sel.value=p; loadForm(); }
+};
+
+function loadForm(){
+  var sid=parseInt(document.getElementById("stu-sel").value);
+  if (!sid) { document.getElementById("marks-card").style.display="none"; return; }
+  var s=db_getStudentById(sid); if(!s) return;
+  document.getElementById("marks-title").textContent="Marks: "+s.name+" ("+s.roll+")";
+  var ex=db_getGradesByStudentId(sid), h="";
+  for (var i=0;i<SUBJ.length;i++){
+    var sub=SUBJ[i], key=sub.replace(/\s+/g,"_"), found=null;
+    for(var j=0;j<ex.length;j++) if(ex[j].subject===sub){found=ex[j];break;}
+    var mv=found?found.marks:"", mxv=found?found.max:100;
+    var st=found?'<span style="color:#16a34a;font-weight:700">✓ Saved</span>':'<span class="muted">Not set</span>';
+    h+='<tr>'
+      +'<td style="font-weight:600">'+sub+'</td>'
+      +'<td><input type="number" min="0" class="mk" id="o-'+key+'" value="'+mv+'" placeholder="0–100"></td>'
+      +'<td><input type="number" min="1" class="mk mk-sm" id="m-'+key+'" value="'+mxv+'"></td>'
+      +'<td id="st-'+key+'">'+st+'</td></tr>';
+  }
+  document.getElementById("marks-tbody").innerHTML=h;
+  document.getElementById("marks-card").style.display="block";
+}
+
+function saveMarks(){
+  var sid=parseInt(document.getElementById("stu-sel").value);
+  if (!sid) { showToast("Select a student!","yellow"); return; }
+  var saved=0,errs=0;
+  for(var i=0;i<SUBJ.length;i++){
+    var sub=SUBJ[i], key=sub.replace(/\s+/g,"_");
+    var oEl=document.getElementById("o-"+key), mEl=document.getElementById("m-"+key);
+    if (!oEl||oEl.value==="") continue;
+    var obt=parseInt(oEl.value), mx=parseInt(mEl.value)||100;
+    if (isNaN(obt)||obt<0) { errs++; oEl.style.borderColor="#dc2626"; continue; }
+    if (obt>mx) { errs++; showToast(sub+": marks > max!","yellow"); oEl.style.borderColor="#dc2626"; continue; }
+    oEl.style.borderColor=""; db_setGrade(sid,sub,obt,mx);
+    document.getElementById("st-"+key).innerHTML='<span style="color:#16a34a;font-weight:700">✓ Saved</span>';
+    saved++;
+  }
+  updateSidebar();
+  if (saved&&!errs) showToast(saved+" subjects saved!","green");
+  else if (saved) showToast(saved+" saved, "+errs+" errors.","yellow");
+  else if (errs) showToast("Fix errors first!","red");
+  else showToast("Enter some marks first.","yellow");
+}
+
+function clearInputs(){
+  for(var i=0;i<SUBJ.length;i++){
+    var el=document.getElementById("o-"+SUBJ[i].replace(/\s+/g,"_"));
+    if(el){el.value="";el.style.borderColor="";}
+  }
+}
+</script>
+</body>
+</html>

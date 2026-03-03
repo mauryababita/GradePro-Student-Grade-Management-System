@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Manage Students | GradePro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a class="logo" href="index.html">
+    <span class="logo-grade">Grade</span>
+    <span class="logo-dot">•</span>
+    <span class="logo-pro">Pro</span>
+    <span class="logo-sub">Student Grade Management</span>
+  </a>
+  <div class="topbar-r">
+    <span class="sdot"></span>
+      System Active &nbsp;|&nbsp; Created by <strong style="color:#f97316;font-weight:700">Babita Maurya</strong>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-label">MENU</div>
+  <a class="nav-link active" href="index.html"><span class="nav-icon">👤</span>Manage Students</a>
+  <a class="nav-link" href="marks.html"><span class="nav-icon">📝</span>Enter Marks</a>
+  <a class="nav-link" href="percentage.html"><span class="nav-icon">📊</span>Percentage Report</a>
+  <a class="nav-link" href="grade.html"><span class="nav-icon">🏅</span>Grade Report</a>
+  <a class="nav-link" href="calculator.html"><span class="nav-icon">🧮</span>Grade Calculator</a>
+  <a class="nav-link" href="java.html"><span class="nav-icon">☕</span>Java Backend Code</a>
+  <div class="sb-stats">
+    <div class="sb-row"><span>Total Students</span><span class="sb-val" id="sb-total">0</span></div>
+    <div class="sb-row"><span>Pass</span><span class="sb-val" style="color:#22c55e" id="sb-pass">0</span></div>
+    <div class="sb-row"><span>Fail</span><span class="sb-val" style="color:#f87171" id="sb-fail">0</span></div>
+    <div class="sb-row"><span>Class Avg</span><span class="sb-val" id="sb-avg">0%</span></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="ph">
+    <h1>Manage Students</h1>
+    <p>Add, edit, or delete student records from the database</p>
+  </div>
+
+  <!-- Add Student Card -->
+  <div class="card">
+    <div class="card-top"><h2>+ Add New Student</h2></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="fg"><label>Full Name *</label><input id="n-name" type="text" placeholder="e.g. Rahul Sharma"></div>
+        <div class="fg"><label>Roll Number *</label><input id="n-roll" type="text" placeholder="e.g. CS2025001"></div>
+        <div class="fg"><label>Department</label>
+          <select id="n-dept">
+            <option>Computer Science</option><option>BCA</option><option>Data Science</option>
+            <option>Cloud Computing</option><option>Printing Technology</option>
+            <option>Electronics</option><option>Mechanical</option><option>Civil</option>
+            <option>IT</option><option>Commerce</option><option>Arts</option>
+          </select>
+        </div>
+        <div class="fg"><label>Semester</label>
+          <select id="n-sem"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+        </div>
+        <div class="fg"><label>Email</label><input id="n-email" type="email" placeholder="student@college.edu"></div>
+        <div class="fg"><label>Phone</label><input id="n-phone" type="text" placeholder="10-digit number" maxlength="10"></div>
+      </div>
+      <div class="fa">
+        <button class="btn btn-dark" onclick="addStu()">+ Add Student</button>
+        <button class="btn btn-ghost" onclick="clearForm()">✕ Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Students Table -->
+  <div class="card">
+    <div class="card-top">
+      <h2>All Students</h2>
+      <span class="muted" id="stu-count" style="font-size:13px">0 records</span>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>Roll No</th><th>Name</th><th>Department</th><th>Semester</th><th>Overall %</th><th>Grade</th><th>Result</th><th>Actions</th></tr></thead>
+        <tbody id="stu-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Edit Card (hidden) -->
+  <div class="card" id="edit-card" style="display:none">
+    <div class="card-top">
+      <h2>✏️ Edit Student</h2>
+      <button class="btn btn-ghost" onclick="cancelEdit()" style="padding:7px 14px;font-size:13px">✕ Cancel</button>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="fg"><label>Full Name *</label><input id="e-name" type="text"></div>
+        <div class="fg"><label>Roll (read-only)</label><input id="e-roll" type="text" readonly style="opacity:.45;cursor:not-allowed"></div>
+        <div class="fg"><label>Department</label>
+          <select id="e-dept">
+            <option>Computer Science</option><option>BCA</option><option>Data Science</option>
+            <option>Cloud Computing</option><option>Printing Technology</option>
+            <option>Electronics</option><option>Mechanical</option><option>Civil</option>
+            <option>IT</option><option>Commerce</option><option>Arts</option>
+          </select>
+        </div>
+        <div class="fg"><label>Semester</label>
+          <select id="e-sem"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+        </div>
+        <div class="fg"><label>Email</label><input id="e-email" type="email"></div>
+        <div class="fg"><label>Phone</label><input id="e-phone" type="text" maxlength="10"></div>
+      </div>
+      <div class="fa">
+        <button class="btn btn-dark" onclick="saveEdit()">💾 Save Changes</button>
+        <button class="btn btn-ghost" onclick="cancelEdit()">✕ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+
+<script src="database.js"></script>
+<script src="helpers.js"></script>
+<script>
+var editId = null;
+
+window.onload = function() { renderTable(); updateSidebar(); };
+
+function addStu() {
+  var name=document.getElementById("n-name").value.trim();
+  var roll=document.getElementById("n-roll").value.trim();
+  if (!name) { showToast("Name required!","yellow"); return; }
+  if (!roll)  { showToast("Roll number required!","yellow"); return; }
+  if (db_rollExists(roll)) { showToast("Roll number already exists!","red"); return; }
+  db_addStudent(name,roll,
+    document.getElementById("n-dept").value,
+    document.getElementById("n-sem").value,
+    document.getElementById("n-email").value.trim(),
+    document.getElementById("n-phone").value.trim()
+  );
+  clearForm(); renderTable(); updateSidebar();
+  showToast(name+" added!","green");
+}
+
+function clearForm() {
+  ["n-name","n-roll","n-email","n-phone"].forEach(function(id){ document.getElementById(id).value=""; });
+}
+
+function renderTable() {
+  var list = db_getAllStudents();
+  document.getElementById("stu-count").textContent = list.length+" records";
+  var tb = document.getElementById("stu-tbody");
+  if (!list.length) { tb.innerHTML='<tr class="empty-r"><td colspan="9">No students yet. Add one above ↑</td></tr>'; return; }
+  var h="";
+  for (var i=0;i<list.length;i++) {
+    var s=list[i], sm=calc_summary(s.id);
+    var gb='<div class="gp '+gradeClass(sm.grade)+'">'+sm.grade+'</div>';
+    var rb=sm.result==="PASS"?'<span class="rb rb-p">PASS</span>':sm.result==="FAIL"?'<span class="rb rb-f">FAIL</span>':'<span class="muted">—</span>';
+    var pb=sm.pct>0?progressBar(sm.pct):'<span class="muted" style="font-size:12px">No marks</span>';
+    h+='<tr>'
+      +'<td class="muted">'+(i+1)+'</td>'
+      +'<td><span class="mono bold blue">'+s.roll+'</span></td>'
+      +'<td><strong>'+s.name+'</strong>'+(s.email?'<br><span class="muted" style="font-size:12px">'+s.email+'</span>':'')+'</td>'
+      +'<td>'+s.dept+'</td>'
+      +'<td style="text-align:center">Sem '+s.sem+'</td>'
+      +'<td>'+pb+'</td>'
+      +'<td>'+gb+'</td>'
+      +'<td>'+rb+'</td>'
+      +'<td><div style="display:flex;gap:5px;flex-wrap:wrap">'
+        +'<button class="tb tb-edit" onclick="openEdit('+s.id+')">✏️ Edit</button>'
+        +'<button class="tb tb-marks" onclick="goMarks('+s.id+')">📝 Marks</button>'
+        +'<button class="tb tb-del" onclick="delStu('+s.id+')">🗑️ Del</button>'
+      +'</div></td>'
+      +'</tr>';
+  }
+  tb.innerHTML = h;
+}
+
+function openEdit(id) {
+  var s=db_getStudentById(id); if(!s) return;
+  editId=id;
+  document.getElementById("e-name").value=s.name; document.getElementById("e-roll").value=s.roll;
+  document.getElementById("e-dept").value=s.dept; document.getElementById("e-sem").value=s.sem;
+  document.getElementById("e-email").value=s.email; document.getElementById("e-phone").value=s.phone;
+  document.getElementById("edit-card").style.display="block";
+  document.getElementById("edit-card").scrollIntoView({behavior:"smooth"});
+}
+function saveEdit() {
+  var name=document.getElementById("e-name").value.trim();
+  if (!name) { showToast("Name required!","yellow"); return; }
+  db_updateStudent(editId,name,document.getElementById("e-dept").value,document.getElementById("e-sem").value,document.getElementById("e-email").value.trim(),document.getElementById("e-phone").value.trim());
+  cancelEdit(); renderTable(); updateSidebar(); showToast("Student updated!","green");
+}
+function cancelEdit() { editId=null; document.getElementById("edit-card").style.display="none"; }
+
+function delStu(id) {
+  var s=db_getStudentById(id); if(!s) return;
+  if (!confirm("Delete "+s.name+"?\nAll marks will also be deleted.")) return;
+  db_deleteStudent(id); renderTable(); updateSidebar(); showToast(s.name+" deleted.","red");
+}
+function goMarks(id) { window.location.href="marks.html?id="+id; }
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Grade Calculator | GradePro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="index.html"><span class="logo-grade">Grade</span><span class="logo-dot">•</span><span class="logo-pro">Pro</span><span class="logo-sub">Student Grade Management</span></a>
+  <div class="topbar-r"><span class="sdot"></span>System Active &nbsp;|&nbsp; Java Spring Boot + In-Memory DB</div>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-label">MENU</div>
+  <a class="nav-link" href="index.html"><span class="nav-icon">👤</span>Manage Students</a>
+  <a class="nav-link" href="marks.html"><span class="nav-icon">📝</span>Enter Marks</a>
+  <a class="nav-link" href="percentage.html"><span class="nav-icon">📊</span>Percentage Report</a>
+  <a class="nav-link" href="grade.html"><span class="nav-icon">🏅</span>Grade Report</a>
+  <a class="nav-link active" href="calculator.html"><span class="nav-icon">🧮</span>Grade Calculator</a>
+  <a class="nav-link" href="java.html"><span class="nav-icon">☕</span>Java Backend Code</a>
+  <div class="sb-stats">
+    <div class="sb-row"><span>Total Students</span><span class="sb-val" id="sb-total">0</span></div>
+    <div class="sb-row"><span>Pass</span><span class="sb-val" style="color:#22c55e" id="sb-pass">0</span></div>
+    <div class="sb-row"><span>Fail</span><span class="sb-val" style="color:#f87171" id="sb-fail">0</span></div>
+    <div class="sb-row"><span>Class Avg</span><span class="sb-val" id="sb-avg">0%</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="ph"><h1>Grade Calculator</h1><p>Enter marks for any subjects — instantly calculate percentage &amp; grade</p></div>
+
+  <div class="card">
+    <div class="card-top"><h2>🧮 Multi-Subject Calculator</h2></div>
+    <div class="card-body">
+      <div class="cr" style="margin-bottom:6px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9da8b8">Subject Name</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9da8b8">Marks Obtained</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9da8b8">Max Marks</div>
+        <div></div>
+      </div>
+      <div id="cr-rows"></div>
+      <div class="fa">
+        <button class="btn btn-ghost" onclick="addRow()">＋ Add Subject</button>
+        <button class="btn btn-dark" onclick="calculate()">⚡ Calculate Grade</button>
+        <button class="btn btn-ghost" onclick="resetAll()">↺ Reset</button>
+      </div>
+      <div class="res-box" id="res-box">
+        <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#6070a0;margin-bottom:6px">Overall Grade</div>
+            <div class="res-g" id="res-g">A</div>
+            <span class="res-t" id="res-t"></span>
+          </div>
+          <div style="flex:1">
+            <div class="res-p" id="res-p">0%</div>
+            <div class="res-m" id="res-m"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-top"><h2>📘 Grading Scale</h2></div>
+    <div class="card-body">
+      <div class="scale-grid">
+        <div class="scale-box" style="background:#dcfce7"><span class="scale-ltr" style="color:#15803d">A+</span><div><div style="font-weight:700;color:#15803d">90–100%</div><div style="font-size:12px;color:#166534">Outstanding</div></div></div>
+        <div class="scale-box" style="background:#d1fae5"><span class="scale-ltr" style="color:#065f46">A</span><div><div style="font-weight:700;color:#065f46">80–89%</div><div style="font-size:12px;color:#065f46">Excellent</div></div></div>
+        <div class="scale-box" style="background:#dbeafe"><span class="scale-ltr" style="color:#1d4ed8">B</span><div><div style="font-weight:700;color:#1d4ed8">70–79%</div><div style="font-size:12px;color:#1d4ed8">Very Good</div></div></div>
+        <div class="scale-box" style="background:#fef9c3"><span class="scale-ltr" style="color:#854d0e">C</span><div><div style="font-weight:700;color:#854d0e">60–69%</div><div style="font-size:12px;color:#854d0e">Good</div></div></div>
+        <div class="scale-box" style="background:#ffedd5"><span class="scale-ltr" style="color:#c2410c">D</span><div><div style="font-weight:700;color:#c2410c">40–59%</div><div style="font-size:12px;color:#c2410c">Average</div></div></div>
+        <div class="scale-box" style="background:#fee2e2"><span class="scale-ltr" style="color:#b91c1c">F</span><div><div style="font-weight:700;color:#b91c1c">0–39%</div><div style="font-size:12px;color:#b91c1c">Fail</div></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+<script src="database.js"></script>
+<script src="helpers.js"></script>
+<script>
+var rn=0;
+window.onload=function(){ updateSidebar(); addRow(); };
+
+function addRow(){
+  var id=rn++, d=document.createElement("div");
+  d.className="cr"; d.id="cr-"+id;
+  d.innerHTML='<input type="text" id="cs-'+id+'" placeholder="e.g. Mathematics">'
+    +'<input type="number" id="co-'+id+'" placeholder="0" min="0">'
+    +'<input type="number" id="cm-'+id+'" value="100" min="1">'
+    +'<button class="cr-rm" onclick="rmRow('+id+')">✕</button>';
+  document.getElementById("cr-rows").appendChild(d);
+}
+function rmRow(id){
+  var el=document.getElementById("cr-"+id); if(el) el.remove();
+  document.getElementById("res-box").classList.remove("show");
+}
+function calculate(){
+  var rows=document.querySelectorAll("#cr-rows .cr");
+  if(!rows.length){showToast("Add at least one subject!","yellow");return;}
+  var tO=0,tM=0,meta="",valid=0;
+  for(var i=0;i<rows.length;i++){
+    var rid=rows[i].id.replace("cr-","");
+    var sub=(document.getElementById("cs-"+rid)||{value:""}).value||("Subject "+(i+1));
+    var oEl=document.getElementById("co-"+rid), mEl=document.getElementById("cm-"+rid);
+    if(!oEl||oEl.value==="") continue;
+    var obt=parseFloat(oEl.value), mx=parseFloat(mEl.value)||100;
+    if(isNaN(obt)||obt<0){showToast("Invalid marks in row "+(i+1),"red");return;}
+    if(obt>mx){showToast(sub+": marks exceed max!","yellow");return;}
+    var sp=calc_pct(obt,mx), sg=calc_grade(sp);
+    tO+=obt; tM+=mx; valid++;
+    meta+=sub+": "+obt+"/"+mx+' = <strong style="color:#fff">'+sp+'%</strong> ('+sg+')<br>';
+  }
+  if(!valid){showToast("Enter marks first!","yellow");return;}
+  var pct=calc_pct(tO,tM), gr=calc_grade(pct);
+  var tags={"A+":["Outstanding 🌟","#dcfce7","#15803d"],"A":["Excellent 🎯","#d1fae5","#065f46"],"B":["Very Good 👍","#dbeafe","#1d4ed8"],"C":["Good 📖","#fef9c3","#854d0e"],"D":["Average ⚠️","#ffedd5","#c2410c"],"F":["Failed ✗","#fee2e2","#b91c1c"]};
+  var t=tags[gr]||["","#eee","#333"];
+  document.getElementById("res-g").textContent=gr;
+  document.getElementById("res-p").textContent=pct+"% Overall";
+  document.getElementById("res-m").innerHTML=meta+"<br>Total: "+tO+" / "+tM;
+  var tag=document.getElementById("res-t"); tag.textContent=t[0]; tag.style.background=t[1]; tag.style.color=t[2];
+  document.getElementById("res-box").classList.add("show");
+  document.getElementById("res-box").scrollIntoView({behavior:"smooth"});
+}
+function resetAll(){ document.getElementById("cr-rows").innerHTML=""; document.getElementById("res-box").classList.remove("show"); rn=0; addRow(); }
+</script>
+</body>
+</html>

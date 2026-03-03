@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Percentage Report | GradePro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="index.html"><span class="logo-grade">Grade</span><span class="logo-dot">•</span><span class="logo-pro">Pro</span><span class="logo-sub">Student Grade Management</span></a>
+  <div class="topbar-r"><span class="sdot"></span>System Active &nbsp;|&nbsp; Java Spring Boot + In-Memory DB</div>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-label">MENU</div>
+  <a class="nav-link" href="index.html"><span class="nav-icon">👤</span>Manage Students</a>
+  <a class="nav-link" href="marks.html"><span class="nav-icon">📝</span>Enter Marks</a>
+  <a class="nav-link active" href="percentage.html"><span class="nav-icon">📊</span>Percentage Report</a>
+  <a class="nav-link" href="grade.html"><span class="nav-icon">🏅</span>Grade Report</a>
+  <a class="nav-link" href="calculator.html"><span class="nav-icon">🧮</span>Grade Calculator</a>
+  <a class="nav-link" href="java.html"><span class="nav-icon">☕</span>Java Backend Code</a>
+  <div class="sb-stats">
+    <div class="sb-row"><span>Total Students</span><span class="sb-val" id="sb-total">0</span></div>
+    <div class="sb-row"><span>Pass</span><span class="sb-val" style="color:#22c55e" id="sb-pass">0</span></div>
+    <div class="sb-row"><span>Fail</span><span class="sb-val" style="color:#f87171" id="sb-fail">0</span></div>
+    <div class="sb-row"><span>Class Avg</span><span class="sb-val" id="sb-avg">0%</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="ph"><h1>Percentage Report</h1><p>Subject-wise and overall percentage for all students</p></div>
+
+  <div class="stat-grid" id="stat-grid"></div>
+
+  <div class="card">
+    <div class="card-top"><h2>Subject-wise Percentage</h2><span class="muted" id="rec-cnt" style="font-size:13px">0 records</span></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Student</th><th>Roll No</th><th>Subject</th><th>Marks</th><th>Max</th><th>Percentage</th></tr></thead>
+        <tbody id="subj-tb"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-top"><h2>Overall Percentage per Student</h2></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Name</th><th>Roll No</th><th>Dept</th><th>Subjects</th><th>Total Marks</th><th>Max</th><th>Overall %</th></tr></thead>
+        <tbody id="overall-tb"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+<script src="database.js"></script>
+<script src="helpers.js"></script>
+<script>
+window.onload=function(){ updateSidebar(); renderStats(); renderSubj(); renderOverall(); };
+
+function sc(label,val,sub,c){
+  return '<div class="stat-card" style="--sc:'+c+'"><div class="sc-lbl">'+label+'</div><div class="sc-val">'+val+'</div><div class="sc-sub">'+sub+'</div></div>';
+}
+function renderStats(){
+  var list=db_getAllStudents(), g=db_getAllGrades(), high=0,low=999,tP=0,cnt=0;
+  for(var i=0;i<list.length;i++){var s=calc_summary(list[i].id);if(s.pct>0){if(s.pct>high)high=s.pct;if(s.pct<low)low=s.pct;tP+=s.pct;cnt++;}}
+  var avg=cnt?(tP/cnt).toFixed(1):0; if(low===999)low=0;
+  document.getElementById("stat-grid").innerHTML=
+    sc("Total Records",g.length,"Subject entries","#5b4cdb")+
+    sc("Class Average",avg+"%","Overall avg","#16a34a")+
+    sc("Highest %",high+"%","Best performer","#7c3aed")+
+    sc("Lowest %",low+"%","Needs attention","#ea580c");
+}
+function renderSubj(){
+  var g=db_getAllGrades(),tb=document.getElementById("subj-tb");
+  document.getElementById("rec-cnt").textContent=g.length+" records";
+  if(!g.length){tb.innerHTML='<tr class="empty-r"><td colspan="6">No marks yet. Go to Enter Marks.</td></tr>';return;}
+  var h="";
+  for(var i=0;i<g.length;i++){
+    var r=g[i],s=db_getStudentById(r.studentId),pct=calc_pct(r.marks,r.max);
+    h+='<tr><td><strong>'+(s?s.name:"—")+'</strong></td><td><span class="mono bold blue">'+(s?s.roll:"—")+'</span></td><td>'+r.subject+'</td><td class="mono bold">'+r.marks+'</td><td class="mono muted">'+r.max+'</td><td>'+progressBar(pct)+'</td></tr>';
+  }
+  tb.innerHTML=h;
+}
+function renderOverall(){
+  var list=db_getAllStudents(),tb=document.getElementById("overall-tb");
+  if(!list.length){tb.innerHTML='<tr class="empty-r"><td colspan="7">No students yet.</td></tr>';return;}
+  var h="";
+  for(var i=0;i<list.length;i++){
+    var s=list[i],gs=db_getGradesByStudentId(s.id),sm=calc_summary(s.id);
+    h+='<tr><td><strong>'+s.name+'</strong></td><td><span class="mono bold blue">'+s.roll+'</span></td><td class="muted">'+s.dept+'</td><td class="mono" style="text-align:center">'+gs.length+'</td><td class="mono">'+sm.obt+'</td><td class="mono">'+sm.max+'</td><td>'+(sm.pct>0?progressBar(sm.pct):'<span class="muted">No marks</span>')+'</td></tr>';
+  }
+  tb.innerHTML=h;
+}
+</script>
+</body>
+</html>

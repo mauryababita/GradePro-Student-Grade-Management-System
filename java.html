@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Java Backend Code | GradePro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="index.html"><span class="logo-grade">Grade</span><span class="logo-dot">•</span><span class="logo-pro">Pro</span><span class="logo-sub">Student Grade Management</span></a>
+  <div class="topbar-r"><span class="sdot"></span>System Active &nbsp;|&nbsp; Java Spring Boot + In-Memory DB</div>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-label">MENU</div>
+  <a class="nav-link" href="index.html"><span class="nav-icon">👤</span>Manage Students</a>
+  <a class="nav-link" href="marks.html"><span class="nav-icon">📝</span>Enter Marks</a>
+  <a class="nav-link" href="percentage.html"><span class="nav-icon">📊</span>Percentage Report</a>
+  <a class="nav-link" href="grade.html"><span class="nav-icon">🏅</span>Grade Report</a>
+  <a class="nav-link" href="calculator.html"><span class="nav-icon">🧮</span>Grade Calculator</a>
+  <a class="nav-link active" href="java.html"><span class="nav-icon">☕</span>Java Backend Code</a>
+  <div class="sb-stats">
+    <div class="sb-row"><span>Total Students</span><span class="sb-val" id="sb-total">0</span></div>
+    <div class="sb-row"><span>Pass</span><span class="sb-val" style="color:#22c55e" id="sb-pass">0</span></div>
+    <div class="sb-row"><span>Fail</span><span class="sb-val" style="color:#f87171" id="sb-fail">0</span></div>
+    <div class="sb-row"><span>Class Avg</span><span class="sb-val" id="sb-avg">0%</span></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="ph"><h1>Java Backend Code</h1><p>Spring Boot backend — real Java implementation of this system</p></div>
+
+  <!-- Student.java -->
+  <div class="code-panel">
+    <div class="code-head">
+      <div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div>
+      <div class="code-title">Student.java — JPA Entity</div>
+    </div>
+    <div class="code-body"><pre style="color:#d4d4d4;white-space:pre-wrap"><span class="jp">@Entity</span>
+<span class="jp">@Table</span>(name = <span class="js">"tbl_students"</span>)
+<span class="jk">public class</span> <span class="jt">Student</span> {
+
+    <span class="jp">@Id</span> <span class="jp">@GeneratedValue</span>(strategy = GenerationType.IDENTITY)
+    <span class="jk">private</span> <span class="jt">Long</span> <span class="jv">id</span>;
+
+    <span class="jp">@Column</span>(nullable = <span class="jn">false</span>)
+    <span class="jk">private</span> <span class="jt">String</span> <span class="jv">name</span>;
+
+    <span class="jp">@Column</span>(unique = <span class="jn">true</span>, nullable = <span class="jn">false</span>)
+    <span class="jk">private</span> <span class="jt">String</span> <span class="jv">rollNumber</span>;
+
+    <span class="jk">private</span> <span class="jt">String</span> <span class="jv">department</span>;
+    <span class="jk">private</span> <span class="jt">int</span>    <span class="jv">semester</span>;
+    <span class="jk">private</span> <span class="jt">String</span> <span class="jv">email</span>;
+    <span class="jk">private</span> <span class="jt">String</span> <span class="jv">phone</span>;
+
+    <span class="jp">@OneToMany</span>(mappedBy = <span class="js">"student"</span>, cascade = CascadeType.ALL, orphanRemoval = <span class="jn">true</span>)
+    <span class="jk">private</span> List&lt;<span class="jt">Grade</span>&gt; <span class="jv">grades</span>;
+
+    <span class="jc">// Getters &amp; Setters omitted for brevity</span>
+}</pre></div>
+  </div>
+
+  <!-- GradeService.java -->
+  <div class="code-panel">
+    <div class="code-head">
+      <div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div>
+      <div class="code-title">GradeService.java — Business Logic</div>
+    </div>
+    <div class="code-body"><pre style="color:#d4d4d4;white-space:pre-wrap"><span class="jp">@Service</span>
+<span class="jk">public class</span> <span class="jt">GradeService</span> {
+
+    <span class="jk">public double</span> <span class="jm">calculatePercentage</span>(<span class="jk">int</span> <span class="jv">obtained</span>, <span class="jk">int</span> <span class="jv">max</span>) {
+        <span class="jk">if</span> (max == <span class="jn">0</span>) <span class="jk">return</span> <span class="jn">0.0</span>;
+        <span class="jk">return</span> ((double) obtained / max) * <span class="jn">100</span>;
+    }
+
+    <span class="jk">public</span> <span class="jt">String</span> <span class="jm">assignGrade</span>(<span class="jk">double</span> <span class="jv">pct</span>) {
+        <span class="jk">if</span> (pct &gt;= <span class="jn">90</span>) <span class="jk">return</span> <span class="js">"A+"</span>;
+        <span class="jk">if</span> (pct &gt;= <span class="jn">80</span>) <span class="jk">return</span> <span class="js">"A"</span>;
+        <span class="jk">if</span> (pct &gt;= <span class="jn">70</span>) <span class="jk">return</span> <span class="js">"B"</span>;
+        <span class="jk">if</span> (pct &gt;= <span class="jn">60</span>) <span class="jk">return</span> <span class="js">"C"</span>;
+        <span class="jk">if</span> (pct &gt;= <span class="jn">40</span>) <span class="jk">return</span> <span class="js">"D"</span>;
+        <span class="jk">return</span> <span class="js">"F"</span>;
+    }
+
+    <span class="jk">public</span> <span class="jt">StudentSummaryDTO</span> <span class="jm">getStudentSummary</span>(<span class="jt">Long</span> <span class="jv">studentId</span>) {
+        <span class="jt">List</span>&lt;<span class="jt">Grade</span>&gt; <span class="jv">grades</span> = gradeRepo.<span class="jm">findByStudentId</span>(studentId);
+        <span class="jk">int</span> <span class="jv">tObt</span> = <span class="jn">0</span>, <span class="jv">tMax</span> = <span class="jn">0</span>;
+        <span class="jk">for</span> (<span class="jt">Grade</span> g : grades) { tObt += g.<span class="jm">getMarks</span>(); tMax += g.<span class="jm">getMax</span>(); }
+        <span class="jk">double</span> <span class="jv">pct</span>    = <span class="jm">calculatePercentage</span>(tObt, tMax);
+        <span class="jt">String</span> <span class="jv">grade</span>  = <span class="jm">assignGrade</span>(pct);
+        <span class="jt">String</span> <span class="jv">result</span> = pct &gt;= <span class="jn">40</span> ? <span class="js">"PASS"</span> : <span class="js">"FAIL"</span>;
+        <span class="jk">return new</span> <span class="jt">StudentSummaryDTO</span>(tObt, tMax, pct, grade, result);
+    }
+}</pre></div>
+  </div>
+
+  <!-- StudentController.java -->
+  <div class="code-panel">
+    <div class="code-head">
+      <div class="code-dots"><div class="code-dot" style="background:#ff5f57"></div><div class="code-dot" style="background:#febc2e"></div><div class="code-dot" style="background:#28c840"></div></div>
+      <div class="code-title">StudentController.java — REST API</div>
+    </div>
+    <div class="code-body"><pre style="color:#d4d4d4;white-space:pre-wrap"><span class="jp">@RestController</span>
+<span class="jp">@RequestMapping</span>(<span class="js">"/api/students"</span>)
+<span class="jk">public class</span> <span class="jt">StudentController</span> {
+
+    <span class="jp">@Autowired</span> <span class="jk">private</span> <span class="jt">StudentService</span> <span class="jv">studentService</span>;
+    <span class="jp">@Autowired</span> <span class="jk">private</span> <span class="jt">GradeService</span>   <span class="jv">gradeService</span>;
+
+    <span class="jc">// GET  /api/students</span>
+    <span class="jp">@GetMapping</span>
+    <span class="jk">public</span> List&lt;<span class="jt">Student</span>&gt; <span class="jm">getAll</span>() { <span class="jk">return</span> studentService.<span class="jm">findAll</span>(); }
+
+    <span class="jc">// POST /api/students</span>
+    <span class="jp">@PostMapping</span>
+    <span class="jk">public</span> <span class="jt">Student</span> <span class="jm">create</span>(<span class="jp">@RequestBody</span> <span class="jt">Student</span> <span class="jv">s</span>) { <span class="jk">return</span> studentService.<span class="jm">save</span>(s); }
+
+    <span class="jc">// PUT  /api/students/{id}</span>
+    <span class="jp">@PutMapping</span>(<span class="js">"/{id}"</span>)
+    <span class="jk">public</span> <span class="jt">Student</span> <span class="jm">update</span>(<span class="jp">@PathVariable</span> <span class="jt">Long</span> <span class="jv">id</span>, <span class="jp">@RequestBody</span> <span class="jt">Student</span> <span class="jv">s</span>) {
+        <span class="jk">return</span> studentService.<span class="jm">update</span>(id, s);
+    }
+
+    <span class="jc">// DELETE /api/students/{id}</span>
+    <span class="jp">@DeleteMapping</span>(<span class="js">"/{id}"</span>)
+    <span class="jk">public void</span> <span class="jm">delete</span>(<span class="jp">@PathVariable</span> <span class="jt">Long</span> <span class="jv">id</span>) { studentService.<span class="jm">delete</span>(id); }
+
+    <span class="jc">// GET  /api/students/{id}/summary</span>
+    <span class="jp">@GetMapping</span>(<span class="js">"/{id}/summary"</span>)
+    <span class="jk">public</span> <span class="jt">StudentSummaryDTO</span> <span class="jm">summary</span>(<span class="jp">@PathVariable</span> <span class="jt">Long</span> <span class="jv">id</span>) {
+        <span class="jk">return</span> gradeService.<span class="jm">getStudentSummary</span>(id);
+    }
+}</pre></div>
+  </div>
+
+</main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+<script src="database.js"></script>
+<script src="helpers.js"></script>
+<script>window.onload=function(){ updateSidebar(); };</script>
+</body>
+</html>
